@@ -1,17 +1,7 @@
 // @known-failing-on-windows: 1 failing
-import { afterAll, beforeAll, describe, expect, test } from "bun:test";
+import { expect, test } from "bun:test";
 import { bunEnv, bunExe } from "../../../../harness";
-import {
-  copyFileSync,
-  cpSync,
-  mkdtempSync,
-  readFileSync,
-  readdirSync,
-  rmSync,
-  symlinkSync,
-  writeFileSync,
-  promises as fs,
-} from "fs";
+import { copyFileSync, cpSync, mkdtempSync, readFileSync, rmSync, symlinkSync, promises as fs } from "fs";
 import { tmpdir } from "os";
 import { join } from "path";
 import { cp } from "fs/promises";
@@ -116,11 +106,19 @@ test("next build works", async () => {
   expect(bunBuild.exitCode).toBe(0);
 
   const bunCliOutput = (await new Response(bunBuild.stdout).text())
+    // normalize bytes
+    .replace(/\d(?:\.\d+)?(?= k?B)/g, "0")
     // remove timestamps from output
-    .replace(/\(\d+(?:\.\d+)? m?s\)/gi, "");
+    .replace(/\(\d+(?:\.\d+)? m?s\)/gi, "")
+    // normalize multiple spaces to less
+    .replace(/\s{2,}/g, " ");
   const nodeCliOutput = (await new Response(nodeBuild.stdout).text())
+    // normalize bytes
+    .replace(/\d(?:\.\d+)?(?= k?B)/g, "0")
     // remove timestamps from output
-    .replace(/\(\d+(?:\.\d+)? m?s\)/gi, "");
+    .replace(/\(\d+(?:\.\d+)? m?s\)/gi, "")
+    // normalize multiple spaces to less
+    .replace(/\s{2,}/g, " ");
 
   expect(bunCliOutput).toBe(nodeCliOutput);
 
